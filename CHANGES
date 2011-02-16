@@ -1,5 +1,8 @@
 CHANGES file for HTML::TagCloud:
 
+0.35 Wed Feb 16 10:27:55 MST 2011
+  - make tag URLs optional.
+
 0.34 Tue Nov  7 21:00:33 GMT 2006
   - Internet Explorer fix, which addresses issues with Japanese text
     (thanks to Tatsuhiko Miyagawa)

@@ -1,6 +1,6 @@
 #!perl
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 15;
 use_ok('HTML::TagCloud');
 
 my $cloud = HTML::TagCloud->new;
@@ -57,6 +57,37 @@ $html = $cloud->html();
 is($html, q{<div id="htmltagcloud">
 <span class="tagcloud3"><a href="a.html">a</a></span>
 <span class="tagcloud3"><a href="b.html">b</a></span>
+<span class="tagcloud3"><a href="c.html">c</a></span>
+</div>});
+
+$cloud = HTML::TagCloud->new;
+$cloud->add_static("a", 10);
+
+$html = $cloud->html();
+is ($html, q{<div id="htmltagcloud"><span class="tagcloud1">a</span></div>
+});
+
+$cloud = HTML::TagCloud->new;
+$cloud->add_static("a", 10);
+$cloud->add_static("b", 10);
+$cloud->add_static("c", 10);
+
+$html = $cloud->html();
+is($html, q{<div id="htmltagcloud">
+<span class="tagcloud3">a</span>
+<span class="tagcloud3">b</span>
+<span class="tagcloud3">c</span>
+</div>});
+
+$cloud = HTML::TagCloud->new;
+$cloud->add("a", "a.html", 10);
+$cloud->add_static("b", 10);
+$cloud->add("c", "c.html", 10);
+
+$html = $cloud->html();
+is($html, q{<div id="htmltagcloud">
+<span class="tagcloud3"><a href="a.html">a</a></span>
+<span class="tagcloud3">b</span>
 <span class="tagcloud3"><a href="c.html">c</a></span>
 </div>});
 

@@ -21,6 +21,11 @@ sub add {
   $self->{urls}->{$tag} = $url;
 }
 
+sub add_static {
+    my ($self, $tag, $count) = @_;
+    $self->{counts}->{$tag} = $count;
+}
+
 sub css {
   my ($self) = @_;
   my $css = q(
@@ -82,8 +87,8 @@ sub html {
     return "";
   } elsif ($ntags == 1) {
     my $tag = $tags[0];
-    return qq{<div id="htmltagcloud"><span class="tagcloud1"><a href="}.
-	$tag->{url}.qq{">}.$tag->{name}.qq{</a></span></div>\n};
+    my $span = $self->_format_span(@{$tag}{qw(name url)}, 1);
+    return qq{<div id="htmltagcloud">$span</div>\n};
   }
 
 #  warn "min $min - max $max ($factor)";
@@ -92,8 +97,7 @@ sub html {
 
   my $html = "";
   foreach my $tag (@tags) {
-    $html .=  qq{<span class="tagcloud}.$tag->{level}.qq{"><a href="}.$tag->{url}.
-	      qq{">}.$tag->{name}.qq{</a></span>\n};
+    $html .=  $self->_format_span(@{$tag}{qw(name url level)}) . "\n";
   }
   $html = qq{<div id="htmltagcloud">
 $html</div>};
@@ -105,6 +109,20 @@ sub html_and_css {
   my $html = qq{<style type="text/css">\n} . $self->css . "</style>";
   $html .= $self->html($limit);
   return $html;
+}
+
+sub _format_span {
+  my ($self, $name, $url, $level) = @_;
+  my $span_class = qq{tagcloud$level};
+  my $span = qq{<span class="$span_class">};
+  if (defined $url) {
+    $span .= qq{<a href="$url">};
+  }
+  $span .= $name;
+  if (defined $url) {
+    $span .= qq{</a>};
+  }
+  $span .= qq{</span>};
 }
 
 1;
