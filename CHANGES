@@ -1,5 +1,8 @@
 CHANGES file for HTML::TagCloud:
 
+0.36 Wed Feb 16 15:10:49 MST 2011
+  - use different styles to distinguish adjacent tags.
+
 0.35 Wed Feb 16 10:27:55 MST 2011
   - make tag URLs optional.
 
