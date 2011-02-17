@@ -6,9 +6,10 @@ our $VERSION = '0.36';
 sub new {
   my $class = shift;
   my $self  = {
-    counts => {},
-    urls   => {},
-    levels => 24,
+    counts                    => {},
+    urls                      => {},
+    levels                    => 24,
+    distinguish_adjacent_tags => 0,
     @_
   };
   bless $self, $class;
@@ -35,13 +36,23 @@ sub css {
 }
 );
   foreach my $level (0 .. $self->{levels}) {
-    my $font = 12 + $level;
-    $css .= "span.tagcloud${level}even {font-size: ${font}px;}\n";
-    $css .= "span.tagcloud${level}even a {text-decoration: none;}\n";
-    $css .= "span.tagcloud${level}odd  {font-size: ${font}px;}\n";
-    $css .= "span.tagcloud${level}odd a {text-decoration: none;}\n";
+    if ( $self->{distinguish_adjacent_tags} ) {
+      $css .= $self->_css_for_tag($level, 'even');
+      $css .= $self->_css_for_tag($level, 'odd');
+    } else {
+      $css .= $self->_css_for_tag($level, q{});
+    }
   }
   return $css;
+}
+
+sub _css_for_tag {
+    my ($self, $level, $subclass) = @_;
+    my $font = 12 + $level;
+    return <<"END_OF_TAG";
+span.tagcloud${level}${subclass} {font-size: ${font}px;}
+span.tagcloud${level}${subclass} a {text-decoration: none;}
+END_OF_TAG
 }
 
 sub tags {
@@ -118,8 +129,11 @@ sub html_and_css {
 
 sub _format_span {
   my ($self, $name, $url, $level, $is_even) = @_;
-  my $even_or_odd = $is_even ? 'even' : 'odd';
-  my $span_class = qq{tagcloud$level$even_or_odd};
+  my $subclass = q{};
+  if ( $self->{distinguish_adjacent_tags} ) {
+      $subclass = $is_even ? 'even' : 'odd';
+  }
+  my $span_class = qq{tagcloud$level$subclass};
   my $span = qq{<span class="$span_class">};
   if (defined $url) {
     $span .= qq{<a href="$url">};

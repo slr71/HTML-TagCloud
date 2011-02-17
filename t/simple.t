@@ -1,6 +1,6 @@
 #!perl
 use strict;
-use Test::More tests => 15;
+use Test::More tests => 20;
 use_ok('HTML::TagCloud');
 
 my $cloud = HTML::TagCloud->new;
@@ -14,33 +14,33 @@ foreach my $tag (keys %$tags) {
 }
 
 my $css = $cloud->css;
-is(lines($css), 105);
+is(lines($css), 55);
 
 my $html = $cloud->html(0);
 is($html, "");
 
 $html = $cloud->html(1);
-is($html, q{<div id="htmltagcloud"><span class="tagcloud1even"><a href="/show/florida">florida</a></span></div>
+is($html, q{<div id="htmltagcloud"><span class="tagcloud1"><a href="/show/florida">florida</a></span></div>
 });
 
 $html = $cloud->html(2);
 is($html, q{<div id="htmltagcloud">
-<span class="tagcloud2even"><a href="/show/florida">florida</a></span>
-<span class="tagcloud0odd"><a href="/show/tanja">tanja</a></span>
+<span class="tagcloud2"><a href="/show/florida">florida</a></span>
+<span class="tagcloud0"><a href="/show/tanja">tanja</a></span>
 </div>});
 
 $html = $cloud->html(5);
 is(lines($html), 7);
 is($html, q{<div id="htmltagcloud">
-<span class="tagcloud5even"><a href="/show/florida">florida</a></span>
-<span class="tagcloud0odd"><a href="/show/fort">fort</a></span>
-<span class="tagcloud1even"><a href="/show/london">london</a></span>
-<span class="tagcloud2odd"><a href="/show/madagascar">madagascar</a></span>
-<span class="tagcloud3even"><a href="/show/tanja">tanja</a></span>
+<span class="tagcloud5"><a href="/show/florida">florida</a></span>
+<span class="tagcloud0"><a href="/show/fort">fort</a></span>
+<span class="tagcloud1"><a href="/show/london">london</a></span>
+<span class="tagcloud2"><a href="/show/madagascar">madagascar</a></span>
+<span class="tagcloud3"><a href="/show/tanja">tanja</a></span>
 </div>});
 
 $html = $cloud->html_and_css(5);
-is(lines($html), 113);
+is(lines($html), 63);
 
 $html = $cloud->html(20);
 is(lines($html), 22);
@@ -55,12 +55,34 @@ $cloud->add("c", "c.html", 10);
 
 $html = $cloud->html();
 is($html, q{<div id="htmltagcloud">
+<span class="tagcloud3"><a href="a.html">a</a></span>
+<span class="tagcloud3"><a href="b.html">b</a></span>
+<span class="tagcloud3"><a href="c.html">c</a></span>
+</div>});
+
+$cloud = HTML::TagCloud->new( distinguish_adjacent_tags => 1 );
+$cloud->add("a", "a.html", 10);
+$cloud->add("b", "b.html", 10);
+$cloud->add("c", "c.html", 10);
+
+$css = $cloud->css;
+is(lines($css), 105);
+
+$html = $cloud->html();
+is($html, q{<div id="htmltagcloud">
 <span class="tagcloud3even"><a href="a.html">a</a></span>
 <span class="tagcloud3odd"><a href="b.html">b</a></span>
 <span class="tagcloud3even"><a href="c.html">c</a></span>
 </div>});
 
 $cloud = HTML::TagCloud->new;
+$cloud->add_static("a", 10);
+
+$html = $cloud->html();
+is ($html, q{<div id="htmltagcloud"><span class="tagcloud1">a</span></div>
+});
+
+$cloud = HTML::TagCloud->new( distinguish_adjacent_tags => 1 );
 $cloud->add_static("a", 10);
 
 $html = $cloud->html();
@@ -74,12 +96,36 @@ $cloud->add_static("c", 10);
 
 $html = $cloud->html();
 is($html, q{<div id="htmltagcloud">
+<span class="tagcloud3">a</span>
+<span class="tagcloud3">b</span>
+<span class="tagcloud3">c</span>
+</div>});
+
+$cloud = HTML::TagCloud->new( distinguish_adjacent_tags => 1 );
+$cloud->add_static("a", 10);
+$cloud->add_static("b", 10);
+$cloud->add_static("c", 10);
+
+$html = $cloud->html();
+is($html, q{<div id="htmltagcloud">
 <span class="tagcloud3even">a</span>
 <span class="tagcloud3odd">b</span>
 <span class="tagcloud3even">c</span>
 </div>});
 
 $cloud = HTML::TagCloud->new;
+$cloud->add("a", "a.html", 10);
+$cloud->add_static("b", 10);
+$cloud->add("c", "c.html", 10);
+
+$html = $cloud->html();
+is($html, q{<div id="htmltagcloud">
+<span class="tagcloud3"><a href="a.html">a</a></span>
+<span class="tagcloud3">b</span>
+<span class="tagcloud3"><a href="c.html">c</a></span>
+</div>});
+
+$cloud = HTML::TagCloud->new( distinguish_adjacent_tags => 1 );
 $cloud->add("a", "a.html", 10);
 $cloud->add_static("b", 10);
 $cloud->add("c", "c.html", 10);
