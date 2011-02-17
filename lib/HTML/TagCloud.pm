@@ -188,11 +188,18 @@ or use your own.
 
 =head2 new
 
-The constructor takes one optional argument:
+The constructor takes two optional arguments:
 
   my $cloud = HTML::TagCloud->new(levels=>10);
 
 if not provided, levels defaults to 24
+
+  my $cloud = HTML::TagCloud->new(distinguish_adjacent_tags=>1);
+
+If distinguish_adjacent_tags is true HTML::TagCloud will use different CSS
+classes for adjacent tags in order to be able to make it easier to
+distinguish adjacent multi-word tags.  If not specified, this parameter
+defaults to a false value.
 
 =head1 METHODS
 
