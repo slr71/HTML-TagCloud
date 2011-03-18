@@ -4,57 +4,58 @@ use warnings;
 our $VERSION = '0.36';
 
 sub new {
-  my $class = shift;
-  my $self  = {
-    counts                    => {},
-    urls                      => {},
-    categories                => {},
-    levels                    => 24,
-    distinguish_adjacent_tags => 0,
-    @_
-  };
-  bless $self, $class;
-  return $self;
+    my $class = shift;
+    my $self  = {
+        counts                    => {},
+        urls                      => {},
+        categories                => {},
+        levels                    => 24,
+        distinguish_adjacent_tags => 0,
+        @_
+    };
+    bless $self, $class;
+    return $self;
 }
 
 sub add {
-  my($self, $tag, $url, $count, $category) = @_;
-  $self->{counts}->{$tag} = $count;
-  $self->{urls}->{$tag} = $url;
-  if (defined $category) {
-      $self->{categories}->{$tag} = $category;
-  }
+    my ( $self, $tag, $url, $count, $category ) = @_;
+    $self->{counts}->{$tag} = $count;
+    $self->{urls}->{$tag}   = $url;
+    if ( defined $category ) {
+        $self->{categories}->{$tag} = $category;
+    }
 }
 
 sub add_static {
-    my ($self, $tag, $count, $category) = @_;
+    my ( $self, $tag, $count, $category ) = @_;
     $self->{counts}->{$tag} = $count;
-    if (defined $category) {
+    if ( defined $category ) {
         $self->{categories}->{$tag} = $category;
     }
 }
 
 sub css {
-  my ($self) = @_;
-  my $css = q(
+    my ($self) = @_;
+    my $css = q(
 #htmltagcloud {
   text-align:  center; 
   line-height: 1; 
 }
 );
-  foreach my $level (0 .. $self->{levels}) {
-    if ( $self->{distinguish_adjacent_tags} ) {
-      $css .= $self->_css_for_tag($level, 'even');
-      $css .= $self->_css_for_tag($level, 'odd');
-    } else {
-      $css .= $self->_css_for_tag($level, q{});
+    foreach my $level ( 0 .. $self->{levels} ) {
+        if ( $self->{distinguish_adjacent_tags} ) {
+            $css .= $self->_css_for_tag( $level, 'even' );
+            $css .= $self->_css_for_tag( $level, 'odd' );
+        }
+        else {
+            $css .= $self->_css_for_tag( $level, q{} );
+        }
     }
-  }
-  return $css;
+    return $css;
 }
 
 sub _css_for_tag {
-    my ($self, $level, $subclass) = @_;
+    my ( $self, $level, $subclass ) = @_;
     my $font = 12 + $level;
     return <<"END_OF_TAG";
 span.tagcloud${level}${subclass} {font-size: ${font}px;}
@@ -63,117 +64,121 @@ END_OF_TAG
 }
 
 sub tags {
-  my($self, $limit) = @_;
-  my $counts = $self->{counts};
-  my $urls   = $self->{urls};
-  my $categories = $self->{categories};
-  my @tags = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
-  @tags = splice(@tags, 0, $limit) if defined $limit;
+    my ( $self, $limit ) = @_;
+    my $counts     = $self->{counts};
+    my $urls       = $self->{urls};
+    my $categories = $self->{categories};
+    my @tags       = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
+    @tags = splice( @tags, 0, $limit ) if defined $limit;
 
-  return unless scalar @tags;
+    return unless scalar @tags;
 
-  my $min = log($counts->{$tags[-1]});
-  my $max = log($counts->{$tags[0]});
-  my $factor;
-  
-  # special case all tags having the same count
-  if ($max - $min == 0) {
-    $min = $min - $self->{levels};
-    $factor = 1;
-  } else {
-    $factor = $self->{levels} / ($max - $min);
-  }
-  
-  if (scalar @tags < $self->{levels} ) {
-    $factor *= (scalar @tags/$self->{levels});
-  }
-  my @tag_items;
-  foreach my $tag (sort @tags) {
-    my $tag_item;
-    $tag_item->{name} = $tag;
-    $tag_item->{count} = $counts->{$tag};
-    $tag_item->{url}   = $urls->{$tag};
-    $tag_item->{level} = int((log($tag_item->{count}) - $min) * $factor);
-    $tag_item->{category} = $categories->{$tag};
-    push @tag_items,$tag_item;
-  }
-  return @tag_items;
+    my $min = log( $counts->{ $tags[-1] } );
+    my $max = log( $counts->{ $tags[0] } );
+    my $factor;
+
+    # special case all tags having the same count
+    if ( $max - $min == 0 ) {
+        $min    = $min - $self->{levels};
+        $factor = 1;
+    }
+    else {
+        $factor = $self->{levels} / ( $max - $min );
+    }
+
+    if ( scalar @tags < $self->{levels} ) {
+        $factor *= ( scalar @tags / $self->{levels} );
+    }
+    my @tag_items;
+    foreach my $tag ( sort @tags ) {
+        my $tag_item;
+        $tag_item->{name}  = $tag;
+        $tag_item->{count} = $counts->{$tag};
+        $tag_item->{url}   = $urls->{$tag};
+        $tag_item->{level}
+            = int( ( log( $tag_item->{count} ) - $min ) * $factor );
+        $tag_item->{category} = $categories->{$tag};
+        push @tag_items, $tag_item;
+    }
+    return @tag_items;
 }
 
 sub html {
-  my($self, $limit) = @_;
-  my $html
-      = $self->has_categories()
-      ? $self->html_with_categories($limit)
-      : $self->html_without_categories($limit);
-  return $html;
+    my ( $self, $limit ) = @_;
+    my $html
+        = $self->has_categories()
+        ? $self->html_with_categories($limit)
+        : $self->html_without_categories($limit);
+    return $html;
 }
 
 sub has_categories {
     my ($self) = @_;
     my $categories_ref = $self->{categories};
     for my $tag ( keys %{$categories_ref} ) {
-      return 1 if defined $self->{categories}->{$tag};
-    }      
+        return 1 if defined $self->{categories}->{$tag};
+    }
     return 0;
 }
 
 sub html_without_categories {
-  my ( $self, $limit ) = @_;
-  my @tags=$self->tags($limit);
+    my ( $self, $limit ) = @_;
+    my @tags = $self->tags($limit);
 
-  my $ntags = scalar(@tags);
-  if ($ntags == 0) {
-    return "";
-  } elsif ($ntags == 1) {
-    my $tag = $tags[0];
-    my $span = $self->_format_span(@{$tag}{qw(name url)}, 1, 1);
-    return qq{<div id="htmltagcloud">$span</div>\n};
-  }
+    my $ntags = scalar(@tags);
+    if ( $ntags == 0 ) {
+        return "";
+    }
+    elsif ( $ntags == 1 ) {
+        my $tag = $tags[0];
+        my $span = $self->_format_span( @{$tag}{qw(name url)}, 1, 1 );
+        return qq{<div id="htmltagcloud">$span</div>\n};
+    }
 
-#  warn "min $min - max $max ($factor)";
-#  warn(($min - $min) * $factor);
-#  warn(($max - $min) * $factor);
+    #  warn "min $min - max $max ($factor)";
+    #  warn(($min - $min) * $factor);
+    #  warn(($max - $min) * $factor);
 
-  my $html = "";
-  my $is_even = 1;
-  foreach my $tag (@tags) {
-    my $span = $self->_format_span(@{$tag}{qw(name url level)}, $is_even);
-    $html .= "$span\n";
-    $is_even = !$is_even;
-  }
-  $html = qq{<div id="htmltagcloud">
+    my $html    = "";
+    my $is_even = 1;
+    foreach my $tag (@tags) {
+        my $span
+            = $self->_format_span( @{$tag}{qw(name url level)}, $is_even );
+        $html .= "$span\n";
+        $is_even = !$is_even;
+    }
+    $html = qq{<div id="htmltagcloud">
 $html</div>};
-  return $html;
+    return $html;
 }
 
 sub html_with_categories {
-  return q{};
+    return q{};
 }
 
 sub html_and_css {
-  my($self, $limit) = @_;
-  my $html = qq{<style type="text/css">\n} . $self->css . "</style>";
-  $html .= $self->html($limit);
-  return $html;
+    my ( $self, $limit ) = @_;
+    my $html = qq{<style type="text/css">\n} . $self->css . "</style>";
+    $html .= $self->html($limit);
+    return $html;
 }
 
 sub _format_span {
-  my ($self, $name, $url, $level, $is_even) = @_;
-  my $subclass = q{};
-  if ( $self->{distinguish_adjacent_tags} ) {
-      $subclass = $is_even ? 'even' : 'odd';
-  }
-  my $span_class = qq{tagcloud$level$subclass};
-  my $span = qq{<span class="$span_class">};
-  if (defined $url) {
-    $span .= qq{<a href="$url">};
-  }
-  $span .= $name;
-  if (defined $url) {
-    $span .= qq{</a>};
-  }
-  $span .= qq{</span>};
+    my ( $self, $name, $url, $level, $is_even ) = @_;
+    my $subclass = q{};
+    if ( $self->{distinguish_adjacent_tags} ) {
+        $subclass = $is_even ? 'even' : 'odd';
+    }
+    my $span_class = qq{tagcloud$level$subclass};
+    my $span       = qq{<span class="$span_class">};
+    if ( defined $url ) {
+        $span .= qq{<a href="$url">};
+    }
+    $span .= $name;
+    if ( defined $url ) {
+        $span .= qq{</a>};
+    }
+    $span .= qq{</span>};
 }
 
 1;
