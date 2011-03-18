@@ -8,6 +8,7 @@ sub new {
   my $self  = {
     counts                    => {},
     urls                      => {},
+    categories                => {},
     levels                    => 24,
     distinguish_adjacent_tags => 0,
     @_
@@ -17,14 +18,20 @@ sub new {
 }
 
 sub add {
-  my($self, $tag, $url, $count) = @_;
+  my($self, $tag, $url, $count, $category) = @_;
   $self->{counts}->{$tag} = $count;
   $self->{urls}->{$tag} = $url;
+  if (defined $category) {
+      $self->{categories}->{$tag} = $category;
+  }
 }
 
 sub add_static {
-    my ($self, $tag, $count) = @_;
+    my ($self, $tag, $count, $category) = @_;
     $self->{counts}->{$tag} = $count;
+    if (defined $category) {
+        $self->{categories}->{$tag} = $category;
+    }
 }
 
 sub css {
@@ -58,7 +65,8 @@ END_OF_TAG
 sub tags {
   my($self, $limit) = @_;
   my $counts = $self->{counts};
-  my $urls   = $self->{urls}; 
+  my $urls   = $self->{urls};
+  my $categories = $self->{categories};
   my @tags = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
   @tags = splice(@tags, 0, $limit) if defined $limit;
 
@@ -86,6 +94,7 @@ sub tags {
     $tag_item->{count} = $counts->{$tag};
     $tag_item->{url}   = $urls->{$tag};
     $tag_item->{level} = int((log($tag_item->{count}) - $min) * $factor);
+    $tag_item->{category} = $categories->{$tag};
     push @tag_items,$tag_item;
   }
   return @tag_items;
@@ -93,6 +102,24 @@ sub tags {
 
 sub html {
   my($self, $limit) = @_;
+  my $html
+      = $self->has_categories()
+      ? $self->html_with_categories($limit)
+      : $self->html_without_categories($limit);
+  return $html;
+}
+
+sub has_categories {
+    my ($self) = @_;
+    my $categories_ref = $self->{categories};
+    for my $tag ( keys %{$categories_ref} ) {
+      return 1 if defined $self->{categories}->{$tag};
+    }      
+    return 0;
+}
+
+sub html_without_categories {
+  my ( $self, $limit ) = @_;
   my @tags=$self->tags($limit);
 
   my $ntags = scalar(@tags);
@@ -118,6 +145,10 @@ sub html {
   $html = qq{<div id="htmltagcloud">
 $html</div>};
   return $html;
+}
+
+sub html_with_categories {
+  return q{};
 }
 
 sub html_and_css {
