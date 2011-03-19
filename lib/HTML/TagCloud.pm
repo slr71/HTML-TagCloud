@@ -3,12 +3,15 @@ use strict;
 use warnings;
 our $VERSION = '0.36';
 
+use constant EMPTY_STRING => q{};
+
 sub new {
     my $class = shift;
     my $self  = {
         counts                    => {},
         urls                      => {},
-        categories                => {},
+        category_for              => {},
+        categories                => [],
         levels                    => 24,
         distinguish_adjacent_tags => 0,
         @_
@@ -21,16 +24,16 @@ sub add {
     my ( $self, $tag, $url, $count, $category ) = @_;
     $self->{counts}->{$tag} = $count;
     $self->{urls}->{$tag}   = $url;
-    if ( defined $category ) {
-        $self->{categories}->{$tag} = $category;
+    if ( scalar @{ $self->{categories} } > 0 && defined $category ) {
+        $self->{category_for}->{$tag} = $category;
     }
 }
 
 sub add_static {
     my ( $self, $tag, $count, $category ) = @_;
     $self->{counts}->{$tag} = $count;
-    if ( defined $category ) {
-        $self->{categories}->{$tag} = $category;
+    if ( scalar @{ $self->{categories} } > 0 && defined $category ) {
+        $self->{category_for}->{$tag} = $category;
     }
 }
 
@@ -67,7 +70,7 @@ sub tags {
     my ( $self, $limit ) = @_;
     my $counts     = $self->{counts};
     my $urls       = $self->{urls};
-    my $categories = $self->{categories};
+    my $category_for = $self->{category_for};
     my @tags       = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
     @tags = splice( @tags, 0, $limit ) if defined $limit;
 
@@ -97,7 +100,7 @@ sub tags {
         $tag_item->{url}   = $urls->{$tag};
         $tag_item->{level}
             = int( ( log( $tag_item->{count} ) - $min ) * $factor );
-        $tag_item->{category} = $categories->{$tag};
+        $tag_item->{category} = $category_for->{$tag};
         push @tag_items, $tag_item;
     }
     return @tag_items;
@@ -106,42 +109,48 @@ sub tags {
 sub html {
     my ( $self, $limit ) = @_;
     my $html
-        = $self->has_categories()
+        = scalar @{ $self->{categories} } > 0
         ? $self->html_with_categories($limit)
         : $self->html_without_categories($limit);
     return $html;
 }
 
-sub has_categories {
-    my ($self) = @_;
-    my $categories_ref = $self->{categories};
-    for my $tag ( keys %{$categories_ref} ) {
-        return 1 if defined $self->{categories}->{$tag};
-    }
-    return 0;
-}
-
 sub html_without_categories {
     my ( $self, $limit ) = @_;
-    my @tags = $self->tags($limit);
+    my $html = $self->_html_for( [ $self->tags($limit) ] );
+}
 
-    my $ntags = scalar(@tags);
-    if ( $ntags == 0 ) {
-        return "";
-    }
-    elsif ( $ntags == 1 ) {
-        my $tag = $tags[0];
-        my $span = $self->_format_span( @{$tag}{qw(name url)}, 1, 1 );
-        return qq{<div id="htmltagcloud">$span</div>\n};
-    }
+sub _html_for {
+    my ( $self, $tags_ref ) = @_;
+    my $ntags = scalar( @{$tags_ref} );
+    return EMPTY_STRING if $ntags == 0;
 
-    #  warn "min $min - max $max ($factor)";
-    #  warn(($min - $min) * $factor);
-    #  warn(($max - $min) * $factor);
+    # Format the HTML division.
+    my $html
+        = $ntags == 1
+        ? $self->_html_for_single_tag($tags_ref)
+        : $self->_html_for_multiple_tags($tags_ref);
 
-    my $html    = "";
+    return $html;
+}
+
+sub _html_for_single_tag {
+    my ( $self, $tags_ref ) = @_;
+
+    # Format the contents of the div.
+    my $tag_ref = $tags_ref->[0];
+    my $html = $self->_format_span( @{$tag_ref}{qw(name url)}, 1, 1 );
+
+    return qq{<div id="htmltagcloud">$html</div>\n};
+}
+
+sub _html_for_multiple_tags {
+    my ( $self, $tags_ref ) = @_;
+
+    # Format the contents of the div.
+    my $html    = EMPTY_STRING;
     my $is_even = 1;
-    foreach my $tag (@tags) {
+    foreach my $tag (@{$tags_ref}) {
         my $span
             = $self->_format_span( @{$tag}{qw(name url level)}, $is_even );
         $html .= "$span\n";
@@ -153,7 +162,55 @@ $html</div>};
 }
 
 sub html_with_categories {
-    return q{};
+    my ( $self, $limit ) = @_;
+
+    # Get the collection of tags, organized by category.
+    my $tags_by_category_ref = $self->_tags_by_category($limit);
+    return EMPTY_STRING if !defined $tags_by_category_ref;
+
+    # Format the HTML document.
+    my $html = EMPTY_STRING;
+    CATEGORY:
+    for my $category ( @{ $self->{categories} } ) {
+        my $tags_ref = $tags_by_category_ref->{$category};
+        $html .= $self->_html_for_category( $category, $tags_ref );
+    }
+
+    return $html;
+}
+
+sub _html_for_category {
+    my ( $self, $category, $tags_ref ) = @_;
+
+    # Format the HTML.
+    my $html = qq{<div class='$category'>};
+    CATEGORY:
+    for my $tag ( @{ $tags_ref } ) {
+        $html .= $self->_html_for($tags_ref);
+    }
+    $html .= qq{</div>};
+
+    return $html;
+}
+
+sub _tags_by_category {
+    my ( $self, $limit ) = @_;
+
+    # Get the tags.
+    my @tags = $self->tags($limit);
+    return if scalar @tags == 0;
+
+    # Build the categorized collection of tags.
+    my %tags_by_category;
+    for my $tag_ref (@tags) {
+        my $category
+            = defined $tag_ref->{category}
+            ? $tag_ref->{category}
+            : '__unknown__';
+        push @{ $tags_by_category{$category} }, $tag_ref;
+    }
+
+    return \%tags_by_category;
 }
 
 sub html_and_css {
@@ -224,7 +281,7 @@ or use your own.
 
 =head2 new
 
-The constructor takes two optional arguments:
+The constructor takes a few optional arguments:
 
   my $cloud = HTML::TagCloud->new(levels=>10);
 
@@ -236,6 +293,11 @@ If distinguish_adjacent_tags is true HTML::TagCloud will use different CSS
 classes for adjacent tags in order to be able to make it easier to
 distinguish adjacent multi-word tags.  If not specified, this parameter
 defaults to a false value.
+
+  my $cloud = HTML::TagCloud->new(categories=>\@categories);
+
+If categories are provided then tags are grouped in separate divisions by
+category when the HTML fragment is generated.
 
 =head1 METHODS
 
