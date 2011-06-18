@@ -5,8 +5,9 @@
 
 # Ignore generated files and directories.
 Build
+MANIFEST.SKIP
 Makefile
 _build
 blib
 pm_to_blib
-IPlant-TreeRec-*.tar.gz
+HTML-TagCloud-*.tar.gz

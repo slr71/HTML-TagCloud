@@ -1,8 +1,21 @@
---- #YAML:1.0
-name: HTML-TagCloud
-version: 0.34
+---
+abstract: 'Generate An HTML Tag Cloud'
 author:
-  - Leon Brocard, C<< <acme@astray.com> >>.
-abstract: Generate An HTML Tag Cloud
+  - 'Leon Brocard, C<< <acme@astray.com> >>.'
+configure_requires:
+  Module::Build: 0.36
+generated_by: 'Module::Build version 0.3607'
 license: perl
-generated_by: Module::Build version 0.2612, without YAML.pm
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: HTML-TagCloud
+provides:
+  HTML::TagCloud:
+    file: lib/HTML/TagCloud.pm
+    version: 0.37
+requires:
+  Test::More: 0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.36
