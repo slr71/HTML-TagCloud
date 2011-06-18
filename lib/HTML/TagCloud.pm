@@ -32,6 +32,7 @@ sub add {
 sub add_static {
     my ( $self, $tag, $count, $category ) = @_;
     $self->{counts}->{$tag} = $count;
+
     if ( scalar @{ $self->{categories} } > 0 && defined $category ) {
         $self->{category_for}->{$tag} = $category;
     }
@@ -68,10 +69,10 @@ END_OF_TAG
 
 sub tags {
     my ( $self, $limit ) = @_;
-    my $counts     = $self->{counts};
-    my $urls       = $self->{urls};
+    my $counts       = $self->{counts};
+    my $urls         = $self->{urls};
     my $category_for = $self->{category_for};
-    my @tags       = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
+    my @tags         = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
     @tags = splice( @tags, 0, $limit ) if defined $limit;
 
     return unless scalar @tags;
@@ -150,7 +151,7 @@ sub _html_for_multiple_tags {
     # Format the contents of the div.
     my $html    = EMPTY_STRING;
     my $is_even = 1;
-    foreach my $tag (@{$tags_ref}) {
+    foreach my $tag ( @{$tags_ref} ) {
         my $span
             = $self->_format_span( @{$tag}{qw(name url level)}, $is_even );
         $html .= "$span\n";
@@ -183,12 +184,10 @@ sub _html_for_category {
     my ( $self, $category, $tags_ref ) = @_;
 
     # Format the HTML.
-    my $html = qq{<div class='$category'>};
-    CATEGORY:
-    for my $tag ( @{ $tags_ref } ) {
-        $html .= $self->_html_for($tags_ref);
-    }
-    $html .= qq{</div>};
+    my $html
+        = qq{<div class='$category'>}
+        . $self->_html_for($tags_ref)
+        . qq{</div>};
 
     return $html;
 }

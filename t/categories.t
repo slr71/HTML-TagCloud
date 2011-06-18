@@ -5,13 +5,14 @@ use strict;
 
 use Test::More qw( no_plan );
 
-BEGIN { use_ok('HTML::TagCloud') };
+BEGIN { use_ok('HTML::TagCloud') }
 
 test_add_categorized_tag();
 test_add_uncategorized_tag();
 test_add_categorized_and_uncategorized_tags();
 test_html_for_empty_cloud();
 test_html_with_one_categorized_tag();
+test_html_with_multiple_categories();
 
 exit;
 
@@ -105,11 +106,34 @@ sub test_html_for_empty_cloud {
 sub test_html_with_one_categorized_tag {
     my $cloud = HTML::TagCloud->new( categories => [qw(bar)] );
     $cloud->add( 'foo', 'http://www.foo.com', 27, 'bar' );
-    my $got = $cloud->html();
+    my $got      = $cloud->html();
     my $expected = expected_html_with_one_categorized_tag();
-    #is( $got, $expected, 'one-tag HTML with dependencies' );
-    use Data::Dumper;
-    warn Dumper $got;
+    chomp $expected;
+    is( $got, $expected, 'one-tag HTML with dependencies' );
+    return;
+}
+
+##########################################################################
+# Usage      : test_html_with_one_categorized_tag();
+#
+# Purpose    : Verifies that the HTML with one categorized tag is correct.
+#
+# Returns    : Nothing.
+#
+# Parameters : None.
+#
+# Throws     : No exceptions.
+sub test_html_with_multiple_categories {
+    my $cloud = HTML::TagCloud->new( categories => [qw(bar foo baz)] );
+    $cloud->add( 'foo1', 'http://www.foo.com', 27, 'bar' );
+    $cloud->add( 'foo2', 'http://www.foo.com', 27, 'foo' );
+    $cloud->add( 'foo3', 'http://www.foo.com', 27, 'bar' );
+    $cloud->add( 'foo4', 'http://www.foo.com', 27, 'baz' );
+    $cloud->add( 'foo5', 'http://www.foo.com', 27, 'foo' );
+    my $got      = $cloud->html();
+    my $expected = expected_html_with_multiple_categorized_tags();
+    chomp $expected;
+    is( $got, $expected, 'one-tag HTML with dependencies' );
     return;
 }
 
@@ -125,6 +149,34 @@ sub test_html_with_one_categorized_tag {
 #
 # Throws     : No exceptions.
 sub expected_html_with_one_categorized_tag {
+
     return <<'END_OF_HTML';
+<div class='bar'><div id="htmltagcloud"><span class="tagcloud1"><a href="http://www.foo.com">foo</a></span></div>
+</div>
+END_OF_HTML
+}
+
+##########################################################################
+# Usage      : expected_html_with_multiple_categorized_tags()
+#
+# Purpose    : Generates the HTML we expect to get for the test with multiple
+#              categorized tags.
+#
+# Returns    : The formatted HTML.
+#
+# Parameters : None.
+#
+# Throws     : No exceptions.
+sub expected_html_with_multiple_categorized_tags {
+
+    return <<'END_OF_HTML';
+<div class='bar'><div id="htmltagcloud">
+<span class="tagcloud5"><a href="http://www.foo.com">foo1</a></span>
+<span class="tagcloud5"><a href="http://www.foo.com">foo3</a></span>
+</div></div><div class='foo'><div id="htmltagcloud">
+<span class="tagcloud5"><a href="http://www.foo.com">foo2</a></span>
+<span class="tagcloud5"><a href="http://www.foo.com">foo5</a></span>
+</div></div><div class='baz'><div id="htmltagcloud"><span class="tagcloud1"><a href="http://www.foo.com">foo4</a></span></div>
+</div>
 END_OF_HTML
 }
