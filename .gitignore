@@ -6,6 +6,8 @@
 # Ignore generated files and directories.
 Build
 MANIFEST.SKIP
+META.yml
+MYMETA.yml
 Makefile
 _build
 blib
