@@ -1,5 +1,10 @@
 CHANGES file for HTML::TagCloud:
 
+0.37 Fri Jun 17 17:30:47 MST 2011
+  - added a fix suggested by Juan Antonio Raygoza Garay
+  - added some missing documentation
+  - added a list of known contributors
+
 0.36 Wed Feb 16 15:10:49 MST 2011
   - use different styles to distinguish adjacent tags.
 
