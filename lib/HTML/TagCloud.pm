@@ -259,7 +259,28 @@ HTML::TagCloud - Generate An HTML Tag Cloud
   $cloud->add_static($tag1, $count1);
   $cloud->add_static($tag2, $count2);
   $cloud->add_static($tag3, $count3);
-  
+  my $html = $cloud->html_and_css(50);
+
+  # A cloud that is comprised of tags in multiple categories.
+  my $cloud = HTML::TagCloud->new;
+  $cloud->add($tag1, $url1, $count1, $category1);
+  $cloud->add($tag2, $url2, $count2, $category2);
+  $cloud->add($tag3, $url3, $count3, $category3);
+  my $html = $cloud->html_and_css(50);
+
+  # The same cloud without tags that link to other web pages.
+  my $cloud = HTML::TagCloud->new;
+  $cloud->add_static($tag1, $count1, $category1);
+  $cloud->add_static($tag2, $count2, $category2);
+  $cloud->add_static($tag3, $count3, $category3);
+  my $html = $cloud->html_and_css(50);
+
+  # Obtaining uncategorized HTML for a categorized tag cloud.
+  my $html = $cloud->html_without_categories();
+
+  # Explicitly requesting categorized HTML.
+  my $html = $cloud->html_with_categories();
+
 =head1 DESCRIPTION
 
 The L<HTML::TagCloud> module enables you to generate "tag clouds" in
@@ -332,11 +353,24 @@ method with tags which have a high count as larger:
 =head2 html($limit)
 
 This returns the tag cloud as HTML without the embedded CSS (you should
-use both css() and html() or simply the html_and_css() method). If a
-limit is provided, only the top $limit tags are in the cloud, otherwise
-all the tags are in the cloud:
+use both css() and html() or simply the html_and_css() method). If any
+categories were specified when items were being placed in the cloud then
+the tags will be organized into divisions by category name.  If a limit
+is provided, only the top $limit tags are in the cloud, otherwise all the
+tags are in the cloud:
 
   my $html = $cloud->html(200);
+
+=head2 html_with_categories($limit)
+
+This returns the tag cloud as HTML without the embedded CSS.  The tags will
+be arranged into divisions by category.  If a limit is provided, only the top
+$limit tags are in the cloud.  Otherwise, all tags are in the cloud.
+
+=head2 html_without_categories($limit)
+
+This returns the tag cloud as HTML without the embedded CSS.  The tags will
+not be grouped by category if this method is used to generate the HTML.
 
 =head2 html_and_css($limit)
 
