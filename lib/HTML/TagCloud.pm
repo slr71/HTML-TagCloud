@@ -1,7 +1,7 @@
 package HTML::TagCloud;
 use strict;
 use warnings;
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 use constant EMPTY_STRING => q{};
 
@@ -42,8 +42,8 @@ sub css {
     my ($self) = @_;
     my $css = q(
 #htmltagcloud {
-  text-align:  center; 
-  line-height: 1; 
+  text-align:  center;
+  line-height: 1;
 }
 );
     foreach my $level ( 0 .. $self->{levels} ) {
@@ -72,7 +72,7 @@ sub tags {
     my $counts       = $self->{counts};
     my $urls         = $self->{urls};
     my $category_for = $self->{category_for};
-    my @tags         = sort { $counts->{$b} <=> $counts->{$a} } keys %$counts;
+    my @tags         = sort { $counts->{$b} <=> $counts->{$a} || $a cmp $b } keys %$counts;
     @tags = splice( @tags, 0, $limit ) if defined $limit;
 
     return unless scalar @tags;
@@ -390,4 +390,3 @@ Copyright (C) 2005-6, Leon Brocard
 
 This module is free software; you can redistribute it or modify it
 under the same terms as Perl itself.
-

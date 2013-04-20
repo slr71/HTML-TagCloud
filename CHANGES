@@ -1,5 +1,8 @@
 CHANGES file for HTML::TagCloud:
 
+0.38 Fri Apr 19 21:49:02 2013
+  - added a correction for unit test failures submitted by Bruno Buss
+
 0.37 Fri Jun 17 17:30:47 MST 2011
   - added a fix suggested by Juan Antonio Raygoza Garay
   - added some missing documentation
