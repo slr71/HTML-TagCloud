@@ -7,7 +7,7 @@ SYNOPSIS
       $cloud->add($tag2, $url2, $count2);
       $cloud->add($tag3, $url3, $count3);
       my $html = $cloud->html_and_css(50);
-  
+
 DESCRIPTION
     The HTML::TagCloud module enables you to generate "tag clouds" in HTML.
     Tag clouds serve as a textual way to visualize terms and topics that are
@@ -68,9 +68,17 @@ METHODS
 AUTHOR
     Leon Brocard, "<acme@astray.com>".
 
+SUPPORT
+
+    The current repository for this project is maintained on GitHub:
+
+      https://github.com/dennisroberts71/HTML-TagCloud
+
+    Please feel free to report any problems in the issue tracker for this
+    repository.
+
 COPYRIGHT
     Copyright (C) 2005, Leon Brocard
 
     This module is free software; you can redistribute it or modify it under
     the same terms as Perl itself.
-
