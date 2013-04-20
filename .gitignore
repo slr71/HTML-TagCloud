@@ -4,12 +4,21 @@
 .#*
 
 # Ignore generated files and directories.
+blib/
+.build/
+_build/
+cover_db/
+inc/
 Build
-MANIFEST.SKIP
+!Build/
+Build.bat
+.last_cover_stats
+Makefile
+Makefile.old
+MANIFEST.bak
 META.yml
 MYMETA.yml
-Makefile
-_build
-blib
+nytprof.out
 pm_to_blib
+Build
 HTML-TagCloud-*.tar.gz
